@@ -1,13 +1,16 @@
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import fiona
+from pathlib import Path
 from shapely.geometry import Polygon
-from geometry_modifications import (select_big_from_mp, get_gdf_poly,
-                                    find_poly_area)
-from hydro_atlas_variables import (hydrology_variables, physiography_variables,
-                                   climate_variables, landcover_variables,
-                                   soil_and_geo_variables, urban_variables,
-                                   monthes)
+from .geometry_modifications import (select_big_from_mp, get_gdf_poly,
+                                     find_poly_area)
+from .hydro_atlas_variables import (hydrology_variables,
+                                    physiography_variables,
+                                    climate_variables, landcover_variables,
+                                    soil_and_geo_variables, urban_variables,
+                                    monthes)
 
 
 def featureXtractor(user_ws: Polygon, gdb_file_path: str):
@@ -78,3 +81,27 @@ def featureXtractor(user_ws: Polygon, gdb_file_path: str):
     geo_vector['ws_area'] = find_poly_area(gdf_your_WS)
 
     return geo_vector
+
+
+def save_results(extracted_data: list,
+                 gauge_ids: pd.Series,
+                 path_to_save: str):
+
+    Path(path_to_save).mkdir(exist_ok=True, parents=True)
+
+    # create DataFrame to save it by categories
+    df_to_disk = pd.concat(extracted_data).set_index(gauge_ids)
+
+    df_to_disk.to_csv(f'{path_to_save}/geo_vector.csv')
+
+    save_names = {'hydro': hydrology_variables,
+                  'physio': physiography_variables+['ws_area'],
+                  'climate': climate_variables,
+                  'landcover': landcover_variables,
+                  'soil_geo': soil_and_geo_variables,
+                  'urban': urban_variables}
+
+    for key, values in save_names.items():
+        df_to_disk[values].to_csv(f'{path_to_save}/{key}.csv')
+
+    return

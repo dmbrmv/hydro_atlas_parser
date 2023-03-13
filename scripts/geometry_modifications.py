@@ -114,7 +114,7 @@ def find_poly_area(poly):
     return area
 
 
-def parallelize_function(WS: GeoDataFrame, path_to_HydroATLAS: str):
+def parallelize_function(WS: gpd.GeoDataFrame, path_to_HydroATLAS: str):
     """
     This function generate list of tuples
     where each tuple stands for row in DF
